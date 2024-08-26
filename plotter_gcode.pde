@@ -30,19 +30,20 @@ int mTileSizeX = 1;
 int mTileSizeY = 1;
 
 /// USER SETTINGS
-float mStrokeWeight = 0.1;
+float mStrokeWeight = 1;
 float mMinimumLineLength = 5;
-int mHorizontalThreshold = 110;
-int mVerticalThreshold = 80;
+int mHorizontalThreshold = 50;
+int mVerticalThreshold = 100;
+boolean mInvertThreshold = false;
 int mTileSize = 1;
-int mLineGap = 3;
+int mLineGap = 5;
 Colors mSelectedColor = Colors.ALL;
 Shapes mSelectedShape = Shapes.HATCHING;
 Types mSelectedType = Types.RASTER;
-String mInputImg = "lenna.png";
+String mInputImg = "bru_eu2.png";
 
 void setup() {
-  size(600, 800);
+  size(800, 800);
   mImg = loadImage(mInputImg);
   mPg = createGraphics(mImg.width, mImg.height);
   
@@ -92,6 +93,7 @@ void initDrawingSettings() {
   gcode.println(";***** Minimum Line Length: " + mMinimumLineLength);
   gcode.println(";***** Horizontal Threshold: " + mHorizontalThreshold);
   gcode.println(";***** Vertical Threshold: " + mVerticalThreshold);
+  gcode.println(";***** Invert Threshold: " + mInvertThreshold);
   gcode.println(";***** Tile Size: " + mTileSize);
   gcode.println(";***** Line Gap: " + mLineGap);
   gcode.println(";***** Selected Color: " + mSelectedColor);
@@ -188,13 +190,15 @@ ResultProcessTile processTile(int x, int y, int start, boolean isDrawing, boolea
   int avgColor = calculateAverageColor(x, y);
   
   if (!isDrawing) {
-    if (avgColor < threshold) {
+    boolean condition1 = mInvertThreshold ? avgColor >= threshold : avgColor < threshold;
+    if (condition1) {
       start = isHorizontal ? x : y;
       isDrawing = true;
     }
   }
   else {
-    if (avgColor >= threshold || lastTile) {
+    boolean condition2 = mInvertThreshold ? avgColor < threshold : avgColor >= threshold;
+    if (condition2 || lastTile) {
       if (isHorizontal) {
         if (start < x) {
           drawLines(x, y, start, y);
@@ -366,5 +370,5 @@ void drawCirclesInImages(float x, float y, float circleSize) {
 // Exibe a imagem original e a nova imagem gerada
 void displayImages() {
   image(mImg, 0, 0);
-  image(mPg, 0, mImg.height);
+  image(mPg, mImg.width, 0);
 }
